@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- =========================================================================================================== -->
+    <!--                                         Informations du projet                                              -->
+    <!-- =========================================================================================================== -->
+    <!-- ===== Informations Maven ===== -->
+
+    <groupId>org.exemple.demo</groupId>
+    <artifactId>projet_maven_multi_modules</artifactId>
+    <packaging>pom</packaging>
+    <version>1.0-SNAPSHOT</version>
+
+    <!-- ===== Informations générales ===== -->
+
+    <name>ticket</name>
+    <url>http://maven.apache.org</url>
+
+    <!-- =========================================================================================================== -->
+    <!--                                                Properties                                                   -->
+    <!-- =========================================================================================================== -->
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+
+    <!-- =========================================================================================================== -->
+    <!--                                                 Modules                                                     -->
+    <!-- =========================================================================================================== -->
+
+    <modules>
+        <module>ticket-batch</module>
+        <module>ticket-business</module>
+        <module>ticket-consumer</module>
+        <module>ticket-model</module>
+        <module>ticket-webapp</module>
+    </modules>
+
+
+    <!-- =========================================================================================================== -->
+    <!--                                          Gestion des dépendance                                             -->
+    <!-- =========================================================================================================== -->
+
+    <!--         Ouvrez le POM du projet parent et ajoutez-y une section dependencyManagement :                      -->
+
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- ===== Modules ===== -->
+            <dependency>
+                <groupId>org.exemple.demo</groupId>
+                <artifactId>ticket-batch</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.exemple.demo</groupId>
+                <artifactId>ticket-webapp</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.exemple.demo</groupId>
+                <artifactId>ticket-business</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.exemple.demo</groupId>
+                <artifactId>ticket-consumer</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.exemple.demo</groupId>
+                <artifactId>ticket-model</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+
+            <!-- ===== Bibliothèques tierces de webapp ===== -->
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.12</version>
+                <scope>test</scope><!-- Cette bibliothèque de test unitaire n'est utile que pour la phase de test -->
+            </dependency>
+            <dependency>
+                <groupId>javax.servlet</groupId> <!-- J'ai besoin de cette bibliothèque lors de la compilation pour créer -->
+                <artifactId>servlet-api</artifactId> <!--une Servlet. Cependant, je ne dois pas l'avoir dans les WAR générés  -->
+                <version>2.5</version><!-- car elle entrerait en conflit avec celle fournie par le serveur d'application Java EE lors de l'éxécution.-->
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>javax.validation</groupId><!-- J'ai besoin de cette bibliothèque lors de la compilation pour utiliser -->
+                <artifactId>validation-api</artifactId><!-- les annotations de cette API dans mes Beans-->
+                <version>1.1.0.Final</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.bval</groupId><!-- Cette bibliothèque est une implémentation de l'API de validation de Bean (JSR 303). -->
+                <artifactId>bval-jsr</artifactId><!-- Mon code ne l'utilise pas directement, donc elle n'est pas nécessaire à la compilation. Cependant, -->
+                <version>1.1.2</version><!--  à l'éxécution de l'application, une implémentation de l'API est nécessaire afin de procéder à la validation des Beans. -->
+                <scope>runtime</scope><!-- Cette bibliothèque est une des implémentations possibles (il y a aussi org.hibernate:hibernate-validator)-->
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+
+</project>

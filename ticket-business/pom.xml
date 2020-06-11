@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>projet_maven_multi_modules</artifactId>
+        <groupId>org.exemple.demo</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>ticket-business</artifactId>
+
+    <!-- =========================================================================================================== -->
+    <!--                                           Dépendances                                                       -->
+    <!-- =========================================================================================================== -->
+    <dependencies>
+        <!-- ===== Modules ===== -->
+        <dependency>
+            <groupId>org.exemple.demo</groupId>
+            <artifactId>ticket-consumer</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.exemple.demo</groupId>
+            <artifactId>ticket-model</artifactId>
+        </dependency>
+
+        <!-- ===== Bibliothèques tierces ===== -->
+        <!-- JUnit -->
+    </dependencies>
+
+
+    <!-- ===========================================================================================================
+     Vous remarquez que je n'ai pas précisé de version dans les dépendances. En effet, cela est géré au niveau du POM
+     du projet parent via la section <dependencyManagement>
+
+     Il ne vous reste plus qu'à procéder de même pour les autres modules.
+
+     Après cela, votre projet est prêt, vous pouvez commencer les développements, en répartissant les différents éléments
+     dans leurs couches respectives. ;-)
+     =========================================================================================================== -->
+
+    <!-- =========================================================================================================== -->
+    <!--                                    Construire un projet multi-modules                                       -->
+    <!-- =========================================================================================================== -->
+
+    <!--
+     La construction d'un projet multi-modules se fait comme pour un projet simple :
+
+       1. Vous vous placez dans le répertoire du projet parent.
+
+       2. Vous lancez vos commandes de build Maven dans ce répertoire. Ceci va lancer le build sur chacun des modules.
+
+     Par exemple, pour packager votre projet, faites :
+
+                                                     cd /chemin/vers/projet-multi-modules
+                                                     mvn package
+
+     Ceci va générer les livrables de chaque module dans le repertoire target de chacun de ces modules.
+    -->
+
+</project>

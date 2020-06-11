@@ -1,0 +1,181 @@
+
+Définir la portée d'une dépendance
+==================================
+
+Il se peut que la dépendance que vous voulez ajouter ne soit liée qu'à un contexte particulier comme l'exécution des
+tests par exemple. C'est le cas de la dépendance vers JUnit ajoutée par l'archétype quickstart. En effet, il s'agit
+d'un framework de test unitaire et cette bibliothèque n'a pas à être déployée avec votre application en production.
+
+Pour indiquer cela à Maven, les dépendances sont attachées à un scope.
+
+Par défaut ce scope est compile. Ce scope indique que la dépendance est utilisée lors de la compilation et sera
+accessible dans tous les contextes.
+
+Il existe d'autres scopes. Si je reprends la dépendance vers JUnit, vous remarquez qu'elle est attachée au scope test.
+Cela veut dire qu'elle n'est accessible que lors de la compilation des tests et leur exécution.
+
+Il existe aussi des scopes comme provided ou runtime. provided indique que la dépendance est disponible à la compilation,
+mais elle devra être fournie par le contexte d'exécution (le serveur d'application par exemple). Avec runtime en revanche,
+la dépendance n'est pas accessible lors de la compilation, mais elle est disponible à l'exécution.
+
+Voici un tableau récapitulatif des scopes, de leur transitivité et des contextes dans lesquels la dépendance correspondante
+est accessible :
+
+
+                       Scope       Transitif*       Compilation       Test         Exécution
+                       -----------------------------------------------------------------------
+
+                       compile        ✓                  ✓             ✓               ✓
+                       -----------------------------------------------------------------------
+                       test                                            ✓
+                       -----------------------------------------------------------------------
+                       provided                          ✓             ✓
+                       -----------------------------------------------------------------------
+                       runtime        ✓                                ✓               ✓
+
+* Si la colonne n'est pas cochée (✓), cela signifie que la transitivité en tant que sous-dépendance s'arrête là.
+  Je reformule : lorsque vous ajoutez à votre projet une dépendance vers X et que X a une dépendance vers Y, si le
+  scope de la dépendance vers Y dans X est :
+
+     * transitif (compile ou runtime), Maven ajoute la dépendance vers Y à votre projet
+
+     * non transitif (test ou provided), Maven n'ajoute pas la dépendance vers Y à votre projet
+
+* De manière plus précise, si votre projet a une dépendance vers X et X une dépendance vers Y, voici le scope qui sera
+  donné par Maven à Y dans votre projet en fonction :
+
+     * du scope de X dans votre projet (colonne de gauche)
+
+     * du scope de Y dans X (ligne d'entête)
+
+
+              Scope : X↓ ❘ Y→           compile               test            provided            runtime
+              -------------------------------------------------------------------------------------------
+              compile                  compile                 ∅                ∅               runtime
+              -------------------------------------------------------------------------------------------
+              test                     test                    ∅                ∅                test
+              -------------------------------------------------------------------------------------------
+              provided                 provided                ∅                ∅               provided
+              -------------------------------------------------------------------------------------------
+              runtime                  runtime                 ∅                ∅               runtime
+
+
+Utilisation des différents scopes
+---------------------------------
+
+Je vais prendre des exemples pour illustrer l'utilisation des scopes dans le module ticket-webapp.
+
+Je vais ajouter les dépendances suivantes :
+
+junit:junit pour faire des tests unitaires.
+
+javax.servlet:servlet-api pour pouvoir implémenter une servlet
+
+javax.validation:validation-api pour pouvoir utiliser l'API de validation de Bean (JSR 303)
+
+org.apache.bval:bval-jsr comme implémentation de l'API de validation de Bean (JSR 303)
+
+
+
+Dépendance                          Scope                         Explication
+
+junit                               test                          Cette bibliothèque de test unitaire n'est utile que
+                                                                  pour la phase de test
+
+servlet-api                         provided                      J'ai besoin de cette bibliothèque lors de la compilation
+                                                                  pour créer une Servlet. Cependant, je ne dois pas l'avoir
+                                                                  dans les WAR générés car elle entrerait en conflit avec
+                                                                  celle  fournie par le serveur d'application Java EE lors de
+                                                                  l'éxécution.
+
+validation-api                      compile                       J'ai besoin de cette bibliothèque lors de la compilation
+                                                                  pour utiliser les annotations de cette API dans mes Beans
+
+bval-jsr                            runtime                       Cette bibliothèque est une implémentation de l'API de
+                                                                  validation de Bean (JSR 303). Mon code ne l'utilise pas
+                                                                  directement, donc elle n'est pas nécessaire à la compilation.
+                                                                  Cependant, à l'éxécution de l'application, une implémentation
+                                                                  de l'API est nécessaire afin de procéder à la validation des
+                                                                  Beans. Cette bibliothèque est une des implémentations possibles
+                                                                  (il y a aussi org.hibernate:hibernate-validator)
+
+La mise en œuvre de l'API de validation de Bean (JSR 303) s'appuie sur le mécanisme de SPI (Service Provider Interfaces).
+
+Ainsi, l'interface de l'API est découplée de l'implémentation. L'implémentation est chargée et « cablée » dynamiquement par la JVM à l'exécution.
+
+Après un mvn clean package, voici donc les bibliothèques contenues dans le WAR :
+
+🗄 ticket-webapp.war
+├── ...
+└── 🗁 WEB-INF
+    └── 🗁 lib
+        ├── 🗎 bval-core-1.1.2.jar  (sous-dépendance de bval-jsr)
+        ├── 🗎 bval-jsr-1.1.2.jar
+        ├── 🗎 commons-lang3-3.5.jar (sous-dépendance de bval-jsr)
+        └── 🗎 validation-api-1.1.0.Final.jar
+
+
+Gérer les dépendances de manière globale
+========================================
+
+Vous vous souvenez sûrement que nous avions vu dans le chapitre précédent qu'il est possible de gérer vos dépendances de manière globale dans votre projet. Cela se fait grâce à la section <dependencyManagement> dans le POM du projet parent.
+
+Vous pouvez ainsi lister toutes les dépendances utilisables dans les modules dans le projet parent, fixer leurs versions, gérer les exclusions...
+
+Il ne vous reste plus qu'à ajouter simplement les dépendances dans vos modules sans (presque) vous soucier du reste. ;)
+
+Vous centralisez et homogénéisez ainsi la gestion des dépendances dans votre projet.
+
+Mettons cela en pratique dans le projet ticket :
+
+  ---------
+
+
+
+
+
+Utiliser une « Bill Of Materials »
+==================================
+
+Il est courant qu'un framework soit composé de plusieurs modules (ex. : Spring®, Apache Struts™...). Dans ce cas, au lieu de définir, une par une, toutes les dépendances vers ces modules, il est possible d'utiliser, si elle existe, une « Bill Of Materials» (BOM). Il s'agit d'un fichier POM spécifique, mis à disposition par les mainteneurs du framework. Il contient la définition des dépendances fournies par celui-ci.
+
+Pour l'utiliser, il suffit d'importer le POM de cette « Bill Of Materials » dans la section dependencyManagement de votre projet avec le type pom  et le scope import.
+
+Voici un exemple avec la BOM de Spring :
+
+                                       <project>
+                                           ...
+                                           <dependencyManagement>
+                                               <dependencies>
+                                                   <dependency>
+                                                       <groupId>org.springframework</groupId>
+                                                       <artifactId>spring-framework-bom</artifactId>
+                                                       <version>4.3.11.RELEASE</version>
+                                                       <type>pom</type>
+                                                       <scope>import</scope>
+                                                   </dependency>
+                                               </dependencies>
+                                               ...
+                                           </dependencyManagement>
+                                           ...
+                                       </project>
+
+
+Versions Snapshot et Release
+============================
+
+Il y a un concept fort dans Maven qui s'appelle la reproductibilité de la construction. Cela veut dire que si vous ne
+changez rien et relancez un packaging de votre projet, vous devez obtenir le même livrable (à quelques deltas près comme
+les dates de construction...).
+
+Ceci concerne également les dépendances que vous avez ajoutées à votre projet. Pour garantir au maximum cette reproductibilité
+avec les dépendances, il y a un principe de base : une version d'une dépendance est conventionnellement immuable.
+Cela veut dire qu'une fois la version publiée, elle ne sera plus modifiée. Si un changement doit intervenir dans le code,
+une nouvelle version sera publiée.
+
+Ces versions s'appellent des releases.
+
+Cependant, il arrive que vous deviez dépendre d'un élément en cours de développement. Dans ce cas, la version de cette
+élément sera une version snapshot. Cela est précisé dans Maven avec le suffixe -SNAPSHOT à la fin de la version.
+
+Une version snapshot peut être modifiée à tout moment et elle fait donc l'objet d'un traitement particulier dans Maven.

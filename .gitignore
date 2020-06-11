@@ -1,0 +1,6 @@
+# Project exclude paths
+/ticket-batch/target/
+/ticket-business/target/
+/ticket-consumer/target/
+/ticket-model/target/
+/ticket-webapp/target/
