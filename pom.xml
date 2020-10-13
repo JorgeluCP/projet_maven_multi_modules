@@ -81,7 +81,7 @@
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
-                <version>4.12</version>
+                <version>4.13.1</version>
                 <scope>test</scope><!-- Cette bibliothèque de test unitaire n'est utile que pour la phase de test -->
             </dependency>
             <dependency>
